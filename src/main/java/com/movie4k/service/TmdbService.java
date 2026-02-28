@@ -60,10 +60,7 @@ public class TmdbService {
         Integer tmdbId = item.getInteger("id");
         
         // 1. 保存电影基础信息
-        Movie movie = movieRepository.findAll().stream()
-                .filter(m -> tmdbId.equals(m.getTmdbId()))
-                .findFirst()
-                .orElse(new Movie());
+        Movie movie = movieRepository.findByTmdbId(tmdbId).orElse(new Movie());
 
         movie.setTmdbId(tmdbId);
         movie.setTitle(item.getString("title"));
