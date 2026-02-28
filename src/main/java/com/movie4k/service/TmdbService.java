@@ -29,7 +29,10 @@ public class TmdbService {
     @Autowired
     private MovieResourceRepository movieResourceRepository;
 
-    private final OkHttpClient client = new OkHttpClient();
+    private final OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(java.time.Duration.ofSeconds(30)) // 增加连接超时到30秒
+            .readTimeout(java.time.Duration.ofSeconds(30))
+            .build();
 
     /**
      * 同步热门电影到本地
@@ -101,5 +104,38 @@ public class TmdbService {
             return Integer.parseInt(date.substring(0, 4));
         }
         return 0;
+    }
+
+    /**
+     * 离线模拟数据：手动注入精选电影
+     */
+    @Transactional
+    public void addMockMovies() {
+        Object[][] mockData = {
+            {121, "指环王1：护戒使者", "传说中的至尊魔戒现世，佛罗多踏上征途...", "/m8mq9SgU0gG6z9V3C9X6U6X9.jpg", 2001, "en", "美国", 8.8, "奇幻,冒险"},
+            {122, "指环王2：双塔奇兵", "护戒远征军失散，佛罗多继续前往莫多...", "/m8mq9SgU0gG6z9V3C9X6U6X9.jpg", 2002, "en", "美国", 8.9, "奇幻,冒险"},
+            {299534, "复仇者联盟4：终局之战", "漫威十年巅峰，复仇者们集结逆转时空...", "/or06vSneyPTpi491z9Qubp2duRT.jpg", 2019, "en", "美国", 8.4, "动作,科幻"},
+            {157336, "星际穿越", "由于地球危机，库珀踏上星际旅途寻找新家...", "/m8mq9SgU0gG6z9V3C9X6U6X9.jpg", 2014, "en", "美国", 8.7, "科幻,冒险"},
+            {496243, "寄生虫", "一贫如洗的基宇家通过欺骗进入富豪社长家...", "/799nS02D6W7E8E4W4S5U5X5.jpg", 2019, "ko", "韩国", 8.5, "悬疑,剧情"}
+        };
+
+        for (Object[] d : mockData) {
+            Movie movie = movieRepository.findAll().stream()
+                .filter(m -> d[0].equals(m.getTmdbId()))
+                .findFirst().orElse(new Movie());
+            
+            movie.setTmdbId((Integer)d[0]);
+            movie.setTitle((String)d[1]);
+            movie.setDescription((String)d[2]);
+            movie.setCoverUrl(IMAGE_BASE_URL + d[3]);
+            movie.setReleaseYear((Integer)d[4]);
+            movie.setLanguage((String)d[5]);
+            movie.setCountry((String)d[6]);
+            movie.setRating((Double)d[7]);
+            movie.setTags((String)d[8]);
+            
+            Movie saved = movieRepository.save(movie);
+            generateResources(saved);
+        }
     }
 }
