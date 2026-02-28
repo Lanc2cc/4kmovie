@@ -13,7 +13,7 @@ public class AdminController {
 
     /**
      * 手动触发同步热门电影
-     * 访问地址: http://localhost:8090/api/admin/sync?page=1
+     * 访问地址: http://localhost:8080/api/admin/sync?page=1
      */
     @GetMapping("/sync")
     public String syncMovies(@RequestParam(defaultValue = "1") int page) {
