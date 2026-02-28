@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4K影院 - 极致视听体验</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">4K<span>MOVIE</span></a>
+            <div class="nav-links">
+                <a href="index.html">首页</a>
+                <a href="library.html">影库</a>
+                <a href="#" @click="toggleHistory">历史记录 ({{ historyList.length }})</a>
+            </div>
+        </nav>
+
+        <!-- 巨幕轮播 (展示推荐电影) -->
+        <header class="hero" v-if="recommended.length > 0">
+            <div class="hero-bg" :style="{backgroundImage: 'url(' + recommended[heroIndex].coverUrl + ')'}"></div>
+            <div class="hero-content">
+                <h1 class="hero-title">{{ recommended[heroIndex].title }}</h1>
+                <p class="hero-desc">{{ recommended[heroIndex].description }}</p>
+                <div class="hero-btns">
+                    <button class="btn-play" @click="goToDetail(recommended[heroIndex].id)">立即播放</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 热门推荐列表 -->
+        <section>
+            <div class="section-title">
+                <h2>热门精选</h2>
+                <a href="library.html" style="color: var(--text-muted); font-size: 14px; text-decoration: none;">查看更多 ></a>
+            </div>
+            <div class="movie-grid">
+                <div class="movie-card" v-for="m in recommended" :key="m.id" @click="goToDetail(m.id)">
+                    <img :src="m.coverUrl" class="movie-poster" loading="lazy">
+                    <div class="movie-info">
+                        <div class="movie-name">{{ m.title }}</div>
+                        <div class="movie-meta">
+                            <span>{{ m.releaseYear }} · {{ m.country }}</span>
+                            <span class="rating">★ {{ m.rating }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 历史记录侧边栏 -->
+        <div v-if="showHistory" class="history-panel" style="position: fixed; right: 0; top: 0; width: 300px; height: 100%; background: var(--card-bg); z-index: 2000; padding: 20px; box-shadow: -5px 0 20px rgba(0,0,0,0.8);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h3>最近看过</h3>
+                <button @click="showHistory = false" style="background: none; border: none; color: white; cursor: pointer;">关闭</button>
+            </div>
+            <div v-for="h in historyList" :key="h.movie.id" @click="goToDetail(h.movie.id)" style="display: flex; gap: 10px; margin-bottom: 15px; cursor: pointer;">
+                <img :src="h.movie.coverUrl" style="width: 60px; height: 80px; object-fit: cover; border-radius: 4px;">
+                <div>
+                    <div style="font-size: 14px; margin-bottom: 5px;">{{ h.movie.title }}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">进度: {{ formatTime(h.progress) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+        createApp({
+            setup() {
+                const recommended = ref([]);
+                const historyList = ref([]);
+                const heroIndex = ref(0);
+                const showHistory = ref(false);
+
+                const fetchData = async () => {
+                    const res = await axios.get('/api/movies/recommended');
+                    recommended.value = res.data;
+                    
+                    const histRes = await axios.get('/api/movies/history');
+                    historyList.value = histRes.data;
+                };
+
+                const goToDetail = (id) => {
+                    window.location.href = `detail.html?id=${id}`;
+                };
+
+                const formatTime = (s) => {
+                    const min = Math.floor(s / 60);
+                    return min + "分钟";
+                };
+
+                const toggleHistory = () => {
+                    showHistory.value = !showHistory.value;
+                };
+
+                onMounted(() => {
+                    fetchData();
+                    // 轮播图自动切换
+                    setInterval(() => {
+                        if (recommended.value.length > 0) {
+                            heroIndex.value = (heroIndex.value + 1) % Math.min(5, recommended.value.length);
+                        }
+                    }, 5000);
+                });
+
+                return { recommended, historyList, heroIndex, showHistory, goToDetail, formatTime, toggleHistory };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

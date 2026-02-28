@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>影库筛选 - 4K影院</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        .filter-section { padding: 100px 5% 20px; }
+        .filter-row { display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap; }
+        .filter-label { color: var(--text-muted); min-width: 60px; }
+        .filter-item { cursor: pointer; padding: 2px 12px; border-radius: 4px; transition: var(--transition); font-size: 14px; }
+        .filter-item.active { background: var(--primary-color); color: white; }
+        .filter-item:hover { color: var(--accent-color); }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <nav class="navbar">
+            <a href="index.html" class="logo">4K<span>MOVIE</span></a>
+            <div class="nav-links">
+                <a href="index.html">首页</a>
+                <a href="library.html" style="color: var(--accent-color)">影库</a>
+            </div>
+        </nav>
+
+        <div class="filter-section">
+            <div class="filter-row">
+                <span class="filter-label">分类：</span>
+                <span class="filter-item" :class="{active: !filters.categoryId}" @click="filters.categoryId = null; search()">全部</span>
+                <span class="filter-item" v-for="c in categories" :key="c.id" :class="{active: filters.categoryId === c.id}" @click="filters.categoryId = c.id; search()">{{ c.name }}</span>
+            </div>
+            <div class="filter-row">
+                <span class="filter-label">语言：</span>
+                <span class="filter-item" v-for="l in languages" :class="{active: filters.language === l}" @click="filters.language = l; search()">{{ l || '全部' }}</span>
+            </div>
+        </div>
+
+        <div class="movie-grid">
+            <div class="movie-card" v-for="m in movies" :key="m.id" @click="goToDetail(m.id)">
+                <img :src="m.coverUrl" class="movie-poster">
+                <div class="movie-info">
+                    <div class="movie-name">{{ m.title }}</div>
+                    <div class="movie-meta">
+                        <span>{{ m.releaseYear }} · {{ m.country }}</span>
+                        <span class="rating">★ {{ m.rating }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted, reactive } = Vue;
+        createApp({
+            setup() {
+                const movies = ref([]);
+                const categories = ref([]);
+                const languages = ['en', 'zh', 'ja', 'ko'];
+                const filters = reactive({ categoryId: null, language: '' });
+
+                const search = async () => {
+                    const res = await axios.get('/api/movies/search', { params: { ...filters } });
+                    movies.value = res.data.content;
+                };
+
+                const fetchCategories = async () => {
+                    const res = await axios.get('/api/movies/categories');
+                    categories.value = res.data.filter(c => c.type === 0);
+                };
+
+                const goToDetail = (id) => { window.location.href = `detail.html?id=${id}`; };
+
+                onMounted(() => {
+                    search();
+                    fetchCategories();
+                });
+
+                return { movies, categories, languages, filters, search, goToDetail };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

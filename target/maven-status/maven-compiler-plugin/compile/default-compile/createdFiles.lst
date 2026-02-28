@@ -1,0 +1,14 @@
+com\movie4k\Movie4kApplication.class
+com\movie4k\service\HistoryService.class
+com\movie4k\controller\MovieController.class
+com\movie4k\service\MovieService.class
+com\movie4k\entity\Movie.class
+com\movie4k\controller\AdminController.class
+com\movie4k\repository\WatchHistoryRepository.class
+com\movie4k\service\TmdbService.class
+com\movie4k\entity\WatchHistory.class
+com\movie4k\repository\MovieRepository.class
+com\movie4k\entity\Category.class
+com\movie4k\repository\MovieResourceRepository.class
+com\movie4k\repository\CategoryRepository.class
+com\movie4k\entity\MovieResource.class
