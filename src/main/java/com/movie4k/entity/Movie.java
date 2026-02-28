@@ -16,6 +16,9 @@ public class Movie {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(unique = true)
+    private Integer tmdbId; // TMDB 的唯一标识
+
     private String title;
     
     @Column(columnDefinition = "TEXT")
